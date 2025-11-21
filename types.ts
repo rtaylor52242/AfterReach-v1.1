@@ -1,0 +1,76 @@
+
+
+export type ProfessionalRole = string;
+
+export interface Review {
+  id: string;
+  author: string;
+  date: string;
+  rating: number;
+  text: string;
+}
+
+export interface Professional {
+  id: string;
+  fullName: string;
+  role: ProfessionalRole;
+  businessName: string;
+  profileImage: string;
+  businessLogo?: string;
+  phone: string;
+  email: string;
+  fax?: string;
+  address: string;
+  bio: string;
+  experienceYears: number;
+  certifications: string[];
+  services: string[];
+  languages: string[];
+  availability: string;
+  emergencyAvailability: boolean;
+  rating: number;
+  reviewCount: number;
+  socialLinks?: {
+    linkedin?: string;
+    website?: string;
+  };
+  reviews?: Review[];
+}
+
+export interface LegalTask {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  dueDate?: string;
+  externalLink?: string;
+}
+
+export type PersonalTaskCategory = 'Personal' | 'Household' | 'Pet' | 'Admin';
+
+export interface PersonalTask {
+  id: string;
+  title: string;
+  assignee: string;
+  category: PersonalTaskCategory;
+  completed: boolean;
+  date: string;
+}
+
+export interface DocumentItem {
+  id: string;
+  name: string;
+  type: string;
+  uploadDate: string;
+  size: string;
+  category: 'Essential' | 'Financial' | 'Personal';
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+  timestamp: number;
+}
+
+export type ViewId = 'dashboard' | 'directory' | 'checklist' | 'tasks' | 'calendar' | 'documents' | 'ai-chat' | 'settings';

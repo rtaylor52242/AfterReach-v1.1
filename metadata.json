@@ -1,0 +1,7 @@
+{
+  "name": "AfterReach v1.1",
+  "description": "A comprehensive digital solution designed to guide families through the logistical, legal, and emotional challenges following the loss of a loved one.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

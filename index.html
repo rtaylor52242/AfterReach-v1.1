@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AfterReach v1.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              ar: {
+                bg: '#f8f9fa', // Warm Off-White
+                text: '#2d3748', // Slate Gray-800
+                accent: '#6b7280', // Muted Gray-500
+                taupe: '#8b7d6b', // Warm Taupe
+                sage: '#6b8e7f', // Muted Sage Green
+                gold: '#b8956a', // Soft Gold
+                beige: '#d4c5b9', // Warm Beige
+                dark: {
+                  bg: '#1a1d23', // Deep Charcoal
+                  card: '#2d3238', // Muted Charcoal
+                  text: '#e5e7eb', // Soft White
+                  accent: '#9ca3af', // Soft Gray-400
+                }
+              }
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.4.1"
+  }
+}
+</script>
+</head>
+  <body class="bg-ar-bg text-ar-text dark:bg-ar-dark-bg dark:text-ar-dark-text transition-colors duration-300">
+    <div id="root"></div>
+  </body>
+</html>
