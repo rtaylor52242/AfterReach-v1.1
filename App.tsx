@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { Dashboard } from './components/Dashboard';
@@ -10,14 +11,18 @@ import { Documents } from './components/Documents';
 import { AIChat } from './components/AIChat';
 import { Settings } from './components/Settings';
 import { Login } from './components/Login';
-import { ViewId, LegalTask } from './types';
-import { INITIAL_LEGAL_TASKS } from './constants';
+import { ViewId, LegalTask, CalendarEvent, UserProfile } from './types';
+import { INITIAL_LEGAL_TASKS, INITIAL_USER, INITIAL_CALENDAR_EVENTS } from './constants';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<ViewId>('dashboard');
-  const [legalTasks, setLegalTasks] = useState<LegalTask[]>(INITIAL_LEGAL_TASKS);
   const [darkMode, setDarkMode] = useState<boolean>(false);
+  
+  // Persistent Data States
+  const [legalTasks, setLegalTasks] = useState<LegalTask[]>(INITIAL_LEGAL_TASKS);
+  const [user, setUser] = useState<UserProfile>(INITIAL_USER);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(INITIAL_CALENDAR_EVENTS);
 
   // Effect to handle dark mode class on HTML element
   useEffect(() => {
@@ -49,10 +54,18 @@ const App: React.FC = () => {
     setLegalTasks(prev => [task, ...prev]);
   };
 
+  const handleUpdateUser = (updatedUser: UserProfile) => {
+    setUser(updatedUser);
+  };
+
+  const handleAddCalendarEvent = (event: CalendarEvent) => {
+    setCalendarEvents(prev => [...prev, event]);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard legalTasks={legalTasks} onNavigate={setActiveTab} />;
+        return <Dashboard legalTasks={legalTasks} onNavigate={setActiveTab} user={user} />;
       case 'directory':
         return <Directory />;
       case 'checklist':
@@ -60,15 +73,23 @@ const App: React.FC = () => {
       case 'tasks':
         return <Tasks />;
       case 'calendar':
-        return <Calendar />;
+        return <Calendar events={calendarEvents} onAddEvent={handleAddCalendarEvent} />;
       case 'documents':
         return <Documents />;
       case 'ai-chat':
         return <AIChat />;
       case 'settings':
-        return <Settings darkMode={darkMode} toggleDarkMode={toggleDarkMode} onLogout={handleLogout} />;
+        return (
+          <Settings 
+            darkMode={darkMode} 
+            toggleDarkMode={toggleDarkMode} 
+            onLogout={handleLogout} 
+            user={user}
+            onUpdateUser={handleUpdateUser}
+          />
+        );
       default:
-        return <Dashboard legalTasks={legalTasks} onNavigate={setActiveTab} />;
+        return <Dashboard legalTasks={legalTasks} onNavigate={setActiveTab} user={user} />;
     }
   };
 
@@ -82,6 +103,7 @@ const App: React.FC = () => {
       onNavigate={setActiveTab} 
       darkMode={darkMode} 
       toggleDarkMode={toggleDarkMode}
+      user={user}
     >
       {renderContent()}
     </Layout>

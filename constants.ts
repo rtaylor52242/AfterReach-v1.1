@@ -1,5 +1,6 @@
 
-import { Professional, LegalTask, DocumentItem } from './types';
+
+import { Professional, LegalTask, DocumentItem, CalendarEvent, UserProfile } from './types';
 
 export const INITIAL_ROLES = [
   'Funeral Director',
@@ -8,6 +9,23 @@ export const INITIAL_ROLES = [
   'Estate Planner',
   'Cemetery Counselor',
   'Financial Planner'
+];
+
+export const INITIAL_USER: UserProfile = {
+  firstName: 'Alex',
+  lastName: 'Doe',
+  email: 'alex.doe@example.com',
+  role: 'Premium Member',
+  profileImage: undefined
+};
+
+export const INITIAL_CALENDAR_EVENTS: CalendarEvent[] = [
+  { date: '2023-11-08', title: 'Clean guest room', type: 'personal' },
+  { date: '2023-11-10', title: 'Funeral Service', type: 'legal' },
+  { date: '2023-11-15', title: 'Death Certs Due', type: 'legal' },
+  { date: '2023-11-28', title: 'Meet Attorney', type: 'legal' },
+  { date: '2023-12-05', title: 'Pick up Urn', type: 'personal' },
+  { date: '2023-12-12', title: 'Estate Tax Filing', type: 'legal' },
 ];
 
 export const MOCK_PROFESSIONALS: Professional[] = [

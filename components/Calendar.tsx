@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-interface CalendarEvent {
-  date: string;
-  title: string;
-  type: 'legal' | 'personal';
+
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight, X, Save, Calendar as CalendarIcon } from 'lucide-react';
+import { CalendarEvent } from '../types';
+
+interface CalendarProps {
+  events: CalendarEvent[];
+  onAddEvent: (event: CalendarEvent) => void;
 }
 
-export const Calendar: React.FC = () => {
+export const Calendar: React.FC<CalendarProps> = ({ events, onAddEvent }) => {
   // Start with November 2023 to match the initial mock data context
   const [currentDate, setCurrentDate] = useState(new Date(2023, 10, 1)); // Month is 0-indexed (10 = Nov)
-
-  const events: CalendarEvent[] = [
-    { date: '2023-11-08', title: 'Clean guest room', type: 'personal' },
-    { date: '2023-11-10', title: 'Funeral Service', type: 'legal' },
-    { date: '2023-11-15', title: 'Death Certs Due', type: 'legal' },
-    { date: '2023-11-28', title: 'Meet Attorney', type: 'legal' },
-    { date: '2023-12-05', title: 'Pick up Urn', type: 'personal' },
-    { date: '2023-12-12', title: 'Estate Tax Filing', type: 'legal' },
-  ];
+  
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    date: '',
+    type: 'personal' as 'legal' | 'personal'
+  });
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -40,6 +41,33 @@ export const Calendar: React.FC = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
+  const handleDayDoubleClick = (day: number) => {
+    const year = currentDate.getFullYear();
+    const monthStr = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const dayStr = day.toString().padStart(2, '0');
+    const formattedDate = `${year}-${monthStr}-${dayStr}`;
+
+    setNewEvent({
+        title: '',
+        date: formattedDate,
+        type: 'personal'
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSaveEvent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEvent.title || !newEvent.date) return;
+
+    onAddEvent({
+        title: newEvent.title,
+        date: newEvent.date,
+        type: newEvent.type
+    });
+
+    setIsModalOpen(false);
+  };
+
   const daysInMonth = getDaysInMonth(currentDate);
   const firstDay = getFirstDayOfMonth(currentDate);
   
@@ -58,8 +86,88 @@ export const Calendar: React.FC = () => {
 
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+  const renderAddEventModal = () => {
+    if (!isModalOpen) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-white dark:bg-ar-dark-card rounded-2xl max-w-md w-full shadow-xl border border-ar-beige dark:border-gray-700">
+                <div className="p-6 border-b border-ar-beige dark:border-gray-700 flex justify-between items-center">
+                    <h2 className="text-xl font-bold text-ar-text dark:text-ar-dark-text">Add Event</h2>
+                    <button onClick={() => setIsModalOpen(false)} className="text-ar-accent hover:text-ar-text dark:hover:text-white">
+                        <X size={24} />
+                    </button>
+                </div>
+                <form onSubmit={handleSaveEvent} className="p-6 space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-ar-accent mb-1">Event Title</label>
+                        <input 
+                            autoFocus
+                            required
+                            type="text"
+                            value={newEvent.title}
+                            onChange={e => setNewEvent({...newEvent, title: e.target.value})}
+                            placeholder="e.g. Meeting with Attorney"
+                            className="w-full p-3 rounded-lg bg-ar-bg dark:bg-gray-800 border border-transparent focus:border-ar-taupe focus:ring-0 text-ar-text dark:text-white"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-ar-accent mb-1">Date</label>
+                        <div className="relative">
+                            <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                            <input 
+                                required
+                                type="date"
+                                value={newEvent.date}
+                                onChange={e => setNewEvent({...newEvent, date: e.target.value})}
+                                className="w-full pl-10 p-3 rounded-lg bg-ar-bg dark:bg-gray-800 border border-transparent focus:border-ar-taupe focus:ring-0 text-ar-text dark:text-white"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-ar-accent mb-1">Type</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setNewEvent({...newEvent, type: 'legal'})}
+                                className={`p-3 rounded-lg border text-sm font-medium transition-colors ${newEvent.type === 'legal' ? 'bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900 dark:text-blue-200' : 'bg-gray-50 border-gray-200 text-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'}`}
+                            >
+                                Legal Task
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setNewEvent({...newEvent, type: 'personal'})}
+                                className={`p-3 rounded-lg border text-sm font-medium transition-colors ${newEvent.type === 'personal' ? 'bg-green-100 border-green-500 text-green-700 dark:bg-green-900 dark:text-green-200' : 'bg-gray-50 border-gray-200 text-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'}`}
+                            >
+                                Personal/Family
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4">
+                        <button 
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-ar-text dark:text-ar-dark-text font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit"
+                            className="px-4 py-2 bg-ar-taupe text-white rounded-lg hover:bg-opacity-90 shadow-md flex items-center gap-2"
+                        >
+                            <Save size={18} /> Save Event
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+  };
+
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col relative">
+       {renderAddEventModal()}
+
        <div className="flex justify-between items-center mb-6">
           <div>
              <h1 className="text-3xl font-bold text-ar-text dark:text-ar-dark-text">{monthName} {year}</h1>
@@ -106,7 +214,16 @@ export const Calendar: React.FC = () => {
                   const isToday = new Date().toDateString() === new Date(year, currentDate.getMonth(), day).toDateString();
                   
                   return (
-                      <div key={day} className={`border-b border-r border-gray-100 dark:border-gray-700 min-h-[100px] p-2 relative group hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${isToday ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
+                      <div 
+                        key={day} 
+                        onDoubleClick={() => handleDayDoubleClick(day)}
+                        className={`
+                            border-b border-r border-gray-100 dark:border-gray-700 min-h-[100px] p-2 relative group 
+                            hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer
+                            ${isToday ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}
+                        `}
+                        title="Double-click to add event"
+                      >
                           <span className={`
                             block font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full text-sm
                             ${isToday ? 'bg-ar-taupe text-white' : 'text-ar-text dark:text-ar-dark-text'}

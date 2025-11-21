@@ -1,6 +1,7 @@
 
+
 import React, { useState } from 'react';
-import { ViewId } from '../types';
+import { ViewId, UserProfile } from '../types';
 import { 
   LayoutDashboard, 
   Users, 
@@ -23,9 +24,10 @@ interface LayoutProps {
   darkMode: boolean;
   toggleDarkMode: () => void;
   children: React.ReactNode;
+  user: UserProfile;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ activeTab, onNavigate, darkMode, toggleDarkMode, children }) => {
+export const Layout: React.FC<LayoutProps> = ({ activeTab, onNavigate, darkMode, toggleDarkMode, children, user }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems: { id: ViewId; label: string; icon: React.ReactNode }[] = [
@@ -97,10 +99,14 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, onNavigate, darkMode,
               <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
             <div className="flex items-center gap-3 px-4 py-2">
-               <UserCircle size={32} className="text-ar-taupe" />
-               <div>
-                 <p className="text-sm font-semibold text-ar-text dark:text-ar-dark-text">Alex Doe</p>
-                 <p className="text-xs text-ar-accent">Premium Member</p>
+               {user.profileImage ? (
+                   <img src={user.profileImage} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-ar-taupe" />
+               ) : (
+                   <UserCircle size={32} className="text-ar-taupe" />
+               )}
+               <div className="overflow-hidden">
+                 <p className="text-sm font-semibold text-ar-text dark:text-ar-dark-text truncate">{user.firstName} {user.lastName}</p>
+                 <p className="text-xs text-ar-accent truncate">{user.role}</p>
                </div>
             </div>
           </div>

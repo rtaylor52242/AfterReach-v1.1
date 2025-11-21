@@ -73,4 +73,18 @@ export interface ChatMessage {
   timestamp: number;
 }
 
+export interface CalendarEvent {
+  date: string;
+  title: string;
+  type: 'legal' | 'personal';
+}
+
+export interface UserProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  profileImage?: string; // Base64 string or URL
+}
+
 export type ViewId = 'dashboard' | 'directory' | 'checklist' | 'tasks' | 'calendar' | 'documents' | 'ai-chat' | 'settings';

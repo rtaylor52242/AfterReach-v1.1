@@ -1,22 +1,18 @@
 
-import React, { useState } from 'react';
-import { User, Bell, Shield, Monitor, LogOut, ChevronRight, X, Save, Lock, Smartphone, Check, Eye, EyeOff, QrCode, Copy } from 'lucide-react';
+
+import React, { useState, useRef } from 'react';
+import { User, Bell, Shield, Monitor, LogOut, ChevronRight, X, Save, Lock, Smartphone, Check, Eye, EyeOff, QrCode, Copy, Camera, Upload } from 'lucide-react';
+import { UserProfile } from '../types';
 
 interface SettingsProps {
     darkMode: boolean;
     toggleDarkMode: () => void;
     onLogout: () => void;
+    user: UserProfile;
+    onUpdateUser: (user: UserProfile) => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, onLogout }) => {
-    // User Profile State
-    const [user, setUser] = useState({
-        firstName: 'Alex',
-        lastName: 'Doe',
-        email: 'alex.doe@example.com',
-        role: 'Premium Member'
-    });
-
+export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, onLogout, user, onUpdateUser }) => {
     // Notifications State
     const [notifications, setNotifications] = useState({
         email: true,
@@ -35,6 +31,8 @@ export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, on
     const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
     const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
+    
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Helper: Show Success Message
     const showSuccess = (msg: string) => {
@@ -50,9 +48,22 @@ export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, on
 
     const handleProfileSave = (e: React.FormEvent) => {
         e.preventDefault();
-        setUser(profileForm);
+        onUpdateUser(profileForm);
         setActiveModal('none');
         showSuccess('Profile updated successfully.');
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result as string;
+                onUpdateUser({ ...user, profileImage: base64String });
+                showSuccess('Profile photo updated.');
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     // --- Change Password Logic ---
@@ -307,9 +318,30 @@ export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, on
                     </h2>
                  </div>
                  <div className="p-6 flex flex-col md:flex-row items-start md:items-center gap-6">
-                    <div className="w-20 h-20 bg-ar-taupe rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                        {user.firstName[0]}{user.lastName[0]}
+                    <div className="relative group">
+                        {user.profileImage ? (
+                            <img src={user.profileImage} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-ar-taupe" />
+                        ) : (
+                            <div className="w-20 h-20 bg-ar-taupe rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                                {user.firstName[0]}{user.lastName[0]}
+                            </div>
+                        )}
+                        <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="absolute bottom-0 right-0 p-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            title="Upload Photo"
+                        >
+                            <Camera size={14} className="text-ar-text dark:text-white" />
+                        </button>
+                        <input 
+                            type="file" 
+                            ref={fileInputRef}
+                            onChange={handleImageUpload}
+                            accept="image/*"
+                            className="hidden"
+                        />
                     </div>
+                    
                     <div className="flex-1">
                         <h3 className="text-xl font-bold text-ar-text dark:text-ar-dark-text">{user.firstName} {user.lastName}</h3>
                         <p className="text-ar-accent">{user.email}</p>

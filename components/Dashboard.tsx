@@ -1,14 +1,17 @@
+
+
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { LegalTask, ViewId } from '../types';
+import { LegalTask, ViewId, UserProfile } from '../types';
 import { ArrowRight, AlertCircle, Users, Calendar } from 'lucide-react';
 
 interface DashboardProps {
   legalTasks: LegalTask[];
   onNavigate: (view: ViewId) => void;
+  user: UserProfile;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ legalTasks, onNavigate }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ legalTasks, onNavigate, user }) => {
   const completedCount = legalTasks.filter(t => t.completed).length;
   const totalCount = legalTasks.length;
   const remainingCount = totalCount - completedCount;
@@ -26,7 +29,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ legalTasks, onNavigate }) 
   return (
     <div className="space-y-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-ar-text dark:text-ar-dark-text mb-2">Welcome back, Alex.</h1>
+        <h1 className="text-3xl font-bold text-ar-text dark:text-ar-dark-text mb-2">Welcome back, {user.firstName}.</h1>
         <p className="text-ar-accent dark:text-ar-dark-accent">Here is an overview of your progress today.</p>
       </div>
 
