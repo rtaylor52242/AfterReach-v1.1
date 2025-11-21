@@ -9,10 +9,12 @@ import { Calendar } from './components/Calendar';
 import { Documents } from './components/Documents';
 import { AIChat } from './components/AIChat';
 import { Settings } from './components/Settings';
+import { Login } from './components/Login';
 import { ViewId, LegalTask } from './types';
 import { INITIAL_LEGAL_TASKS } from './constants';
 
 const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<ViewId>('dashboard');
   const [legalTasks, setLegalTasks] = useState<LegalTask[]>(INITIAL_LEGAL_TASKS);
   const [darkMode, setDarkMode] = useState<boolean>(false);
@@ -28,6 +30,15 @@ const App: React.FC = () => {
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
+  };
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setActiveTab('dashboard');
   };
 
   const handleToggleLegalTask = (id: string) => {
@@ -55,11 +66,15 @@ const App: React.FC = () => {
       case 'ai-chat':
         return <AIChat />;
       case 'settings':
-        return <Settings darkMode={darkMode} toggleDarkMode={toggleDarkMode} />;
+        return <Settings darkMode={darkMode} toggleDarkMode={toggleDarkMode} onLogout={handleLogout} />;
       default:
         return <Dashboard legalTasks={legalTasks} onNavigate={setActiveTab} />;
     }
   };
+
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
     <Layout 
