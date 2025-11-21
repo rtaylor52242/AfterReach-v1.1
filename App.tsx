@@ -10,6 +10,7 @@ import { Calendar } from './components/Calendar';
 import { Documents } from './components/Documents';
 import { AIChat } from './components/AIChat';
 import { Settings } from './components/Settings';
+import { Help } from './components/Help';
 import { Login } from './components/Login';
 import { ViewId, LegalTask, CalendarEvent, UserProfile } from './types';
 import { INITIAL_LEGAL_TASKS, INITIAL_USER, INITIAL_CALENDAR_EVENTS } from './constants';
@@ -88,6 +89,8 @@ const App: React.FC = () => {
             onUpdateUser={handleUpdateUser}
           />
         );
+      case 'help':
+        return <Help />;
       default:
         return <Dashboard legalTasks={legalTasks} onNavigate={setActiveTab} user={user} />;
     }

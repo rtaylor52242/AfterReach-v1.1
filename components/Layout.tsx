@@ -15,7 +15,8 @@ import {
   Moon, 
   Sun,
   UserCircle,
-  Settings
+  Settings,
+  HelpCircle
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -39,6 +40,7 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, onNavigate, darkMode,
     { id: 'documents', label: 'Documents', icon: <FileText size={20} /> },
     { id: 'ai-chat', label: 'Ask Aura', icon: <MessageCircleHeart size={20} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
+    { id: 'help', label: 'Help & Guide', icon: <HelpCircle size={20} /> },
   ];
 
   const handleNavClick = (id: ViewId) => {
@@ -72,7 +74,7 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, onNavigate, darkMode,
              <span className="font-bold text-2xl text-ar-taupe">AfterReach v1.1</span>
           </div>
 
-          <nav className="flex-1 space-y-2">
+          <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pb-4">
             {navItems.map((item) => (
               <button
                 key={item.id}

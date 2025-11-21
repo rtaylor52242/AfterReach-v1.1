@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { MOCK_PROFESSIONALS, INITIAL_ROLES } from '../constants';
 import { Professional, ProfessionalRole, Review } from '../types';
-import { Search, MapPin, Phone, Mail, Star, ArrowLeft, Award, Briefcase, Plus, Trash2, X, AlertTriangle, Save, Pencil, MessageSquare, Settings as SettingsIcon, Edit2 } from 'lucide-react';
+import { Search, MapPin, Phone, Mail, Star, ArrowLeft, Award, Briefcase, Plus, Trash2, X, AlertTriangle, Save, Pencil, MessageSquare, Settings as SettingsIcon, Edit2, Camera } from 'lucide-react';
 
 export const Directory: React.FC = () => {
   const [professionals, setProfessionals] = useState<Professional[]>(MOCK_PROFESSIONALS);
@@ -21,6 +21,7 @@ export const Directory: React.FC = () => {
   const [editId, setEditId] = useState<string | null>(null);
   const [profToDelete, setProfToDelete] = useState<string | null>(null);
   const [newServiceInput, setNewServiceInput] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Review State
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -35,7 +36,8 @@ export const Directory: React.FC = () => {
     address: '',
     bio: '',
     services: [],
-    rating: 0
+    rating: 0,
+    profileImage: ''
   });
 
   const filteredProfs = professionals.filter(prof => {
@@ -189,6 +191,17 @@ export const Directory: React.FC = () => {
 
   // --- Existing Functions ---
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setFormData({ ...formData, profileImage: reader.result as string });
+        };
+        reader.readAsDataURL(file);
+    }
+  };
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.fullName || !formData.businessName) return;
@@ -225,7 +238,7 @@ export const Directory: React.FC = () => {
             email: formData.email || '',
             address: formData.address || '',
             bio: formData.bio || '',
-            profileImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName || 'User')}&background=random`,
+            profileImage: formData.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName || 'User')}&background=random`,
             experienceYears: 0,
             certifications: [],
             services: formData.services && formData.services.length > 0 ? formData.services : ['General Consultation'],
@@ -292,7 +305,8 @@ export const Directory: React.FC = () => {
         address: '',
         bio: '',
         services: [],
-        rating: 0
+        rating: 0,
+        profileImage: ''
       });
       setNewServiceInput('');
       setIsFormOpen(true);
@@ -309,7 +323,8 @@ export const Directory: React.FC = () => {
           address: prof.address,
           bio: prof.bio,
           services: prof.services ? [...prof.services] : [],
-          rating: prof.rating
+          rating: prof.rating,
+          profileImage: prof.profileImage
       });
       setNewServiceInput('');
       setIsFormOpen(true);
@@ -464,6 +479,34 @@ export const Directory: React.FC = () => {
                 </div>
                 
                 <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
+                    {/* Image Upload Section */}
+                    <div className="flex flex-col items-center mb-4">
+                        <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                            <img 
+                                src={formData.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName || 'Provider')}&background=random`} 
+                                alt="Profile" 
+                                className="w-24 h-24 rounded-full object-cover border-2 border-ar-taupe bg-gray-100"
+                            />
+                            <div className="absolute inset-0 bg-black/30 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <Camera size={24} className="text-white" />
+                            </div>
+                            <button 
+                                type="button"
+                                className="absolute bottom-0 right-0 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            >
+                                <Camera size={14} className="text-ar-text dark:text-white" />
+                            </button>
+                            <input 
+                                type="file" 
+                                ref={fileInputRef}
+                                onChange={handleImageUpload}
+                                accept="image/*"
+                                className="hidden"
+                            />
+                        </div>
+                        <p className="text-xs text-ar-accent mt-2">Click image to update photo</p>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-ar-accent mb-1">Full Name</label>

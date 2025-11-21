@@ -76,7 +76,7 @@ export interface ChatMessage {
 export interface CalendarEvent {
   date: string;
   title: string;
-  type: 'legal' | 'personal';
+  type: 'legal' | 'personal' | 'pet' | 'admin' | 'household';
 }
 
 export interface UserProfile {
@@ -87,4 +87,4 @@ export interface UserProfile {
   profileImage?: string; // Base64 string or URL
 }
 
-export type ViewId = 'dashboard' | 'directory' | 'checklist' | 'tasks' | 'calendar' | 'documents' | 'ai-chat' | 'settings';
+export type ViewId = 'dashboard' | 'directory' | 'checklist' | 'tasks' | 'calendar' | 'documents' | 'ai-chat' | 'settings' | 'help';
