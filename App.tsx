@@ -26,6 +26,7 @@ const App: React.FC = () => {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(INITIAL_CALENDAR_EVENTS);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(MOCK_FAMILY_MEMBERS);
   const [professionals, setProfessionals] = useState<Professional[]>(MOCK_PROFESSIONALS);
+  const [taskCategories, setTaskCategories] = useState<string[]>(['Personal', 'Household', 'Pet', 'Admin']);
 
   // Effect to handle dark mode class on HTML element
   useEffect(() => {
@@ -77,6 +78,10 @@ const App: React.FC = () => {
     setProfessionals(updatedProfessionals);
   };
 
+  const handleUpdateTaskCategories = (categories: string[]) => {
+    setTaskCategories(categories);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -103,6 +108,8 @@ const App: React.FC = () => {
             onLogout={handleLogout} 
             user={user}
             onUpdateUser={handleUpdateUser}
+            taskCategories={taskCategories}
+            onUpdateTaskCategories={handleUpdateTaskCategories}
           />
         );
       case 'help':

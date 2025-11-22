@@ -1,7 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { MOCK_DOCUMENTS } from '../constants';
 import { DocumentItem } from '../types';
-import { FileText, Upload, Download, Trash2, Folder, X, AlertTriangle, Eye, Filter, FilterX } from 'lucide-react';
+import { FileText, Upload, Download, Trash2, Folder, X, AlertTriangle, Eye, Filter, FilterX, ArrowUp, ArrowDown } from 'lucide-react';
+
+type SortKey = 'name' | 'category' | 'uploadDate' | 'size';
 
 export const Documents: React.FC = () => {
   const [documents, setDocuments] = useState<DocumentItem[]>(MOCK_DOCUMENTS);
@@ -9,6 +11,12 @@ export const Documents: React.FC = () => {
   const [docToDelete, setDocToDelete] = useState<string | null>(null);
   const [previewDoc, setPreviewDoc] = useState<DocumentItem | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('All');
+
+  // Sorting State
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'asc' | 'desc' }>({ 
+    key: 'uploadDate', 
+    direction: 'desc' 
+  });
 
   // Upload Form State
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -18,6 +26,42 @@ export const Documents: React.FC = () => {
   const filteredDocuments = filterCategory === 'All' 
     ? documents 
     : documents.filter(d => d.category === filterCategory);
+
+  // Sorting Logic
+  const sortedDocuments = [...filteredDocuments].sort((a, b) => {
+    const aValue = a[sortConfig.key];
+    const bValue = b[sortConfig.key];
+
+    if (sortConfig.key === 'size') {
+        // Parse "1.2 MB" -> 1.2 for numeric sort
+        const parseSize = (str: string) => {
+            // Handle "< 0.1 MB" cases if they exist
+            if (str.includes('<')) return 0;
+            return parseFloat(str.replace(/[^0-9.]/g, '')) || 0;
+        };
+        const aNum = parseSize(aValue);
+        const bNum = parseSize(bValue);
+        return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+    }
+
+    // String comparison
+    if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const requestSort = (key: SortKey) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key: SortKey) => {
+      if (sortConfig.key !== key) return null;
+      return sortConfig.direction === 'asc' ? <ArrowUp size={14} className="inline ml-1" /> : <ArrowDown size={14} className="inline ml-1" />;
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -338,15 +382,35 @@ export const Documents: React.FC = () => {
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-ar-bg dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                            <th className="p-4 text-sm font-semibold text-ar-accent">Name</th>
-                            <th className="p-4 text-sm font-semibold text-ar-accent">Category</th>
-                            <th className="p-4 text-sm font-semibold text-ar-accent">Date Added</th>
-                            <th className="p-4 text-sm font-semibold text-ar-accent">Size</th>
+                            <th 
+                                className="p-4 text-sm font-semibold text-ar-accent cursor-pointer hover:text-ar-taupe transition-colors select-none"
+                                onClick={() => requestSort('name')}
+                            >
+                                Name {getSortIcon('name')}
+                            </th>
+                            <th 
+                                className="p-4 text-sm font-semibold text-ar-accent cursor-pointer hover:text-ar-taupe transition-colors select-none"
+                                onClick={() => requestSort('category')}
+                            >
+                                Category {getSortIcon('category')}
+                            </th>
+                            <th 
+                                className="p-4 text-sm font-semibold text-ar-accent cursor-pointer hover:text-ar-taupe transition-colors select-none"
+                                onClick={() => requestSort('uploadDate')}
+                            >
+                                Date Added {getSortIcon('uploadDate')}
+                            </th>
+                            <th 
+                                className="p-4 text-sm font-semibold text-ar-accent cursor-pointer hover:text-ar-taupe transition-colors select-none"
+                                onClick={() => requestSort('size')}
+                            >
+                                Size {getSortIcon('size')}
+                            </th>
                             <th className="p-4 text-sm font-semibold text-ar-accent text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredDocuments.map((doc) => (
+                        {sortedDocuments.map((doc) => (
                             <tr key={doc.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                                 <td className="p-4">
                                     <div className="flex items-center gap-3">

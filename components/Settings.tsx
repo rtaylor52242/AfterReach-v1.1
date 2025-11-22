@@ -1,7 +1,5 @@
-
-
 import React, { useState, useRef } from 'react';
-import { User, Bell, Shield, Monitor, LogOut, ChevronRight, X, Save, Lock, Smartphone, Check, Eye, EyeOff, QrCode, Copy, Camera, Upload } from 'lucide-react';
+import { User, Bell, Shield, Monitor, ChevronRight, X, Save, Lock, Smartphone, Check, Eye, EyeOff, QrCode, Copy, Camera, Upload, List, Plus, Trash2, Pencil } from 'lucide-react';
 import { UserProfile } from '../types';
 
 interface SettingsProps {
@@ -10,9 +8,11 @@ interface SettingsProps {
     onLogout: () => void;
     user: UserProfile;
     onUpdateUser: (user: UserProfile) => void;
+    taskCategories: string[];
+    onUpdateTaskCategories: (categories: string[]) => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, onLogout, user, onUpdateUser }) => {
+export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, onLogout, user, onUpdateUser, taskCategories, onUpdateTaskCategories }) => {
     // Notifications State
     const [notifications, setNotifications] = useState({
         email: true,
@@ -24,13 +24,17 @@ export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, on
     const [is2FAEnabled, setIs2FAEnabled] = useState(false);
 
     // Modal States
-    const [activeModal, setActiveModal] = useState<'none' | 'profile' | 'password' | '2fa'>('none');
+    const [activeModal, setActiveModal] = useState<'none' | 'profile' | 'password' | '2fa' | 'categories'>('none');
     
     // Form States
     const [profileForm, setProfileForm] = useState({ ...user });
     const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
     const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
+    
+    // Category Management State
+    const [categoryInput, setCategoryInput] = useState('');
+    const [editingCategory, setEditingCategory] = useState<{ original: string, current: string } | null>(null);
     
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,6 +101,34 @@ export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, on
         setIs2FAEnabled(!is2FAEnabled);
     };
 
+    // --- Task Category Logic ---
+    const handleAddCategory = () => {
+        if (categoryInput.trim() && !taskCategories.includes(categoryInput.trim())) {
+            onUpdateTaskCategories([...taskCategories, categoryInput.trim()]);
+            setCategoryInput('');
+        }
+    };
+
+    const handleDeleteCategory = (cat: string) => {
+        if (window.confirm(`Are you sure you want to delete the category "${cat}"?`)) {
+            onUpdateTaskCategories(taskCategories.filter(c => c !== cat));
+        }
+    };
+
+    const saveEditedCategory = () => {
+        if (editingCategory && editingCategory.current.trim() && editingCategory.current !== editingCategory.original) {
+            if (taskCategories.includes(editingCategory.current.trim())) {
+                alert('Category name already exists');
+                return;
+            }
+            const updatedCategories = taskCategories.map(c => c === editingCategory.original ? editingCategory.current.trim() : c);
+            onUpdateTaskCategories(updatedCategories);
+            setEditingCategory(null);
+        } else {
+            setEditingCategory(null);
+        }
+    };
+
     // --- Renderers ---
 
     const renderSuccessMessage = () => {
@@ -109,6 +141,95 @@ export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, on
         );
     };
 
+    const renderCategoriesModal = () => {
+        if (activeModal !== 'categories') return null;
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+                <div className="bg-white dark:bg-ar-dark-card rounded-2xl max-w-md w-full shadow-xl border border-ar-beige dark:border-gray-700 overflow-hidden flex flex-col max-h-[80vh]">
+                    <div className="p-6 border-b border-ar-beige dark:border-gray-700 flex justify-between items-center">
+                        <h2 className="text-xl font-bold text-ar-text dark:text-ar-dark-text">Manage Task Categories</h2>
+                        <button onClick={() => setActiveModal('none')} className="text-ar-accent hover:text-ar-text dark:hover:text-white">
+                            <X size={24} />
+                        </button>
+                    </div>
+                    
+                    <div className="p-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                        <label className="block text-sm font-medium text-ar-accent mb-2">Add New Category</label>
+                        <div className="flex gap-2">
+                            <input 
+                                type="text"
+                                value={categoryInput}
+                                onChange={e => setCategoryInput(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleAddCategory()}
+                                placeholder="e.g. Medical"
+                                className="flex-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-ar-text dark:text-white focus:ring-2 focus:ring-ar-taupe focus:outline-none"
+                            />
+                            <button 
+                                onClick={handleAddCategory}
+                                disabled={!categoryInput.trim()}
+                                className="px-4 py-2 bg-ar-taupe text-white rounded-lg hover:bg-opacity-90 disabled:opacity-50"
+                            >
+                                Add
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-2">
+                        <ul className="space-y-1">
+                            {taskCategories.map(cat => (
+                                <li key={cat} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg group">
+                                    {editingCategory?.original === cat ? (
+                                        <div className="flex items-center gap-2 flex-1 mr-2">
+                                            <input 
+                                                type="text"
+                                                value={editingCategory.current}
+                                                onChange={e => setEditingCategory({...editingCategory, current: e.target.value})}
+                                                className="flex-1 p-1 px-2 text-sm rounded border border-ar-taupe bg-white dark:bg-gray-700 text-ar-text dark:text-white"
+                                                autoFocus
+                                            />
+                                            <button onClick={saveEditedCategory} className="text-green-600 hover:text-green-700"><Check size={18} /></button>
+                                            <button onClick={() => setEditingCategory(null)} className="text-red-500 hover:text-red-600"><X size={18} /></button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <span className="font-medium text-ar-text dark:text-ar-dark-text">{cat}</span>
+                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button 
+                                                    onClick={() => setEditingCategory({ original: cat, current: cat })}
+                                                    className="p-2 text-gray-400 hover:text-ar-taupe hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                                                    title="Edit"
+                                                >
+                                                    <Pencil size={16} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDeleteCategory(cat)}
+                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                    
+                    <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-center">
+                        <button 
+                            onClick={() => setActiveModal('none')}
+                            className="text-sm text-ar-taupe hover:underline font-medium"
+                        >
+                            Done
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ... (Edit Profile, Password, 2FA modals - same as before)
     const renderEditProfileModal = () => {
         if (activeModal !== 'profile') return null;
         return (
@@ -304,6 +425,7 @@ export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, on
             {renderEditProfileModal()}
             {renderChangePasswordModal()}
             {render2FAModal()}
+            {renderCategoriesModal()}
 
             <div>
                 <h1 className="text-3xl font-bold text-ar-text dark:text-ar-dark-text">Settings</h1>
@@ -392,7 +514,7 @@ export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, on
                     </div>
                 </div>
 
-                {/* Appearance & Security */}
+                {/* Appearance, Security & Task Config */}
                 <div className="space-y-6">
                      <div className="bg-white dark:bg-ar-dark-card rounded-xl border border-ar-beige dark:border-gray-700 overflow-hidden">
                         <div className="p-6 border-b border-gray-100 dark:border-gray-700">
@@ -442,19 +564,31 @@ export const Settings: React.FC<SettingsProps> = ({ darkMode, toggleDarkMode, on
                             </button>
                         </div>
                     </div>
+
+                    {/* Task Configuration */}
+                    <div className="bg-white dark:bg-ar-dark-card rounded-xl border border-ar-beige dark:border-gray-700 overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+                            <h2 className="text-lg font-semibold text-ar-text dark:text-ar-dark-text flex items-center gap-2">
+                                <List size={20} className="text-ar-taupe" /> Task Configuration
+                            </h2>
+                        </div>
+                        <div className="p-6">
+                            <button 
+                                onClick={() => setActiveModal('categories')}
+                                className="w-full text-left py-2 flex justify-between items-center text-ar-text dark:text-ar-dark-text hover:text-ar-taupe transition-colors"
+                            >
+                                <div>
+                                    <p className="font-medium">Task Categories</p>
+                                    <p className="text-xs text-ar-accent">Manage categories for family tasks</p>
+                                </div>
+                                <ChevronRight size={16} className="text-gray-400" />
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div className="flex justify-center pt-8">
-                <button 
-                    onClick={onLogout}
-                    className="flex items-center gap-2 text-red-500 hover:text-red-600 font-medium px-6 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
-                >
-                    <LogOut size={20} /> Sign Out
-                </button>
-            </div>
             
-             <div className="text-center text-xs text-gray-400 pb-8">
+             <div className="text-center text-xs text-gray-400 py-8">
                 <p>AfterReach v1.1 • Build 2023.10.24</p>
             </div>
         </div>
