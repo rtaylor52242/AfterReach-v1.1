@@ -1,7 +1,8 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage } from '../types';
 import { sendMessageToGemini } from '../services/geminiService';
-import { Send, Sparkles, User, Bot, Mic, MicOff, Volume2, VolumeX, Trash2, AlertTriangle } from 'lucide-react';
+import { Send, Sparkles, User, Bot, Mic, MicOff, Volume2, VolumeX, Trash2, AlertTriangle, Download } from 'lucide-react';
 
 const INITIAL_MESSAGE_TEXT = 'Hello. I am Aura. I am here to help you organize tasks, explain complex terms, or simply listen if you feel overwhelmed. How can I support you right now?';
 
@@ -118,6 +119,24 @@ export const AIChat: React.FC = () => {
     setIsClearModalOpen(false);
   };
 
+  const handleDownloadChat = () => {
+    const chatHistory = messages.map(msg => {
+      const role = msg.role === 'user' ? 'You' : 'Aura';
+      const time = new Date(msg.timestamp).toLocaleString();
+      return `[${time}] ${role}:\n${msg.text}\n-------------------`;
+    }).join('\n\n');
+
+    const blob = new Blob([chatHistory], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Aura_Chat_History_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const speakResponse = (text: string) => {
     window.speechSynthesis.cancel(); // Stop any current speech
     const utterance = new SpeechSynthesisUtterance(text);
@@ -214,6 +233,14 @@ export const AIChat: React.FC = () => {
         </div>
         
         <div className="flex gap-2">
+             <button 
+                type="button"
+                onClick={handleDownloadChat}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                title="Download Chat History"
+            >
+                <Download size={20} />
+            </button>
             <button 
                 type="button"
                 onClick={handleClearChat}

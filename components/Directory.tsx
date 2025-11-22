@@ -1,11 +1,14 @@
-
 import React, { useState, useRef } from 'react';
-import { MOCK_PROFESSIONALS, INITIAL_ROLES } from '../constants';
+import { INITIAL_ROLES } from '../constants';
 import { Professional, ProfessionalRole, Review } from '../types';
 import { Search, MapPin, Phone, Mail, Star, ArrowLeft, Award, Briefcase, Plus, Trash2, X, AlertTriangle, Save, Pencil, MessageSquare, Settings as SettingsIcon, Edit2, Camera } from 'lucide-react';
 
-export const Directory: React.FC = () => {
-  const [professionals, setProfessionals] = useState<Professional[]>(MOCK_PROFESSIONALS);
+interface DirectoryProps {
+    professionals: Professional[];
+    onUpdateProfessionals: (profs: Professional[]) => void;
+}
+
+export const Directory: React.FC<DirectoryProps> = ({ professionals, onUpdateProfessionals }) => {
   const [selectedProf, setSelectedProf] = useState<Professional | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('All');
@@ -37,7 +40,8 @@ export const Directory: React.FC = () => {
     bio: '',
     services: [],
     rating: 0,
-    profileImage: ''
+    profileImage: '',
+    availability: ''
   });
 
   const filteredProfs = professionals.filter(prof => {
@@ -88,7 +92,7 @@ export const Directory: React.FC = () => {
             ...p,
             role: p.role === editingRole.original ? updatedRoleName : p.role
         }));
-        setProfessionals(updatedProfs);
+        onUpdateProfessionals(updatedProfs);
         
         // Update current filter if needed
         if (roleFilter === editingRole.original) {
@@ -220,7 +224,7 @@ export const Directory: React.FC = () => {
             }
             return p;
         });
-        setProfessionals(updatedProfs);
+        onUpdateProfessionals(updatedProfs);
         
         // Update selected view if needed
         if (selectedProf && selectedProf.id === editId) {
@@ -243,13 +247,13 @@ export const Directory: React.FC = () => {
             certifications: [],
             services: formData.services && formData.services.length > 0 ? formData.services : ['General Consultation'],
             languages: ['English'],
-            availability: 'Mon-Fri 9am-5pm',
+            availability: formData.availability || 'Mon-Fri 9am-5pm',
             emergencyAvailability: false,
             rating: formData.rating || 0,
             reviewCount: 0,
             reviews: []
         };
-        setProfessionals([...professionals, newProf]);
+        onUpdateProfessionals([...professionals, newProf]);
     }
 
     closeForm();
@@ -286,7 +290,7 @@ export const Directory: React.FC = () => {
           return p;
       });
 
-      setProfessionals(updatedProfs);
+      onUpdateProfessionals(updatedProfs);
       const updatedProf = updatedProfs.find(p => p.id === selectedProf.id);
       if (updatedProf) setSelectedProf(updatedProf);
 
@@ -306,7 +310,8 @@ export const Directory: React.FC = () => {
         bio: '',
         services: [],
         rating: 0,
-        profileImage: ''
+        profileImage: '',
+        availability: ''
       });
       setNewServiceInput('');
       setIsFormOpen(true);
@@ -324,7 +329,8 @@ export const Directory: React.FC = () => {
           bio: prof.bio,
           services: prof.services ? [...prof.services] : [],
           rating: prof.rating,
-          profileImage: prof.profileImage
+          profileImage: prof.profileImage,
+          availability: prof.availability
       });
       setNewServiceInput('');
       setIsFormOpen(true);
@@ -353,7 +359,7 @@ export const Directory: React.FC = () => {
 
   const confirmDelete = () => {
     if (profToDelete) {
-        setProfessionals(professionals.filter(p => p.id !== profToDelete));
+        onUpdateProfessionals(professionals.filter(p => p.id !== profToDelete));
         setProfToDelete(null);
         if (selectedProf?.id === profToDelete) {
             setSelectedProf(null);
@@ -543,14 +549,17 @@ export const Directory: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-ar-accent mb-1">Phone</label>
+                            <label className="block text-sm font-medium text-ar-accent mb-1">Phone (Numbers Only)</label>
                             <input 
                                 required
                                 type="tel"
                                 value={formData.phone}
-                                onChange={e => setFormData({...formData, phone: e.target.value})}
+                                onChange={e => {
+                                    const numericValue = e.target.value.replace(/\D/g, '');
+                                    setFormData({...formData, phone: numericValue});
+                                }}
                                 className="w-full p-3 rounded-lg bg-ar-bg dark:bg-gray-800 border border-transparent focus:border-ar-taupe focus:ring-0 text-ar-text dark:text-white"
-                                placeholder="(555) 000-0000"
+                                placeholder="5550000000"
                             />
                         </div>
                         <div className="md:col-span-2">
@@ -573,6 +582,18 @@ export const Directory: React.FC = () => {
                                 onChange={e => setFormData({...formData, address: e.target.value})}
                                 className="w-full p-3 rounded-lg bg-ar-bg dark:bg-gray-800 border border-transparent focus:border-ar-taupe focus:ring-0 text-ar-text dark:text-white"
                                 placeholder="123 Street, City, State"
+                            />
+                        </div>
+                        
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-ar-accent mb-1">Availability</label>
+                            <input 
+                                required
+                                type="text"
+                                value={formData.availability || ''}
+                                onChange={e => setFormData({...formData, availability: e.target.value})}
+                                className="w-full p-3 rounded-lg bg-ar-bg dark:bg-gray-800 border border-transparent focus:border-ar-taupe focus:ring-0 text-ar-text dark:text-white"
+                                placeholder="e.g. Mon-Fri 9am-5pm"
                             />
                         </div>
 
@@ -891,8 +912,17 @@ export const Directory: React.FC = () => {
           placeholder="Search by name, business, or location..." 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-ar-dark-card text-ar-text dark:text-ar-dark-text focus:outline-none focus:ring-2 focus:ring-ar-taupe shadow-sm"
+          className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-ar-dark-card text-ar-text dark:text-ar-dark-text focus:outline-none focus:ring-2 focus:ring-ar-taupe shadow-sm"
         />
+        {searchTerm && (
+            <button 
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-ar-text dark:hover:text-white"
+                title="Clear Search"
+            >
+                <X size={18} />
+            </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

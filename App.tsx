@@ -1,9 +1,8 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { Dashboard } from './components/Dashboard';
 import { Directory } from './components/Directory';
+import { UsersDirectory } from './components/UsersDirectory';
 import { Checklist } from './components/Checklist';
 import { Tasks } from './components/Tasks';
 import { Calendar } from './components/Calendar';
@@ -12,8 +11,8 @@ import { AIChat } from './components/AIChat';
 import { Settings } from './components/Settings';
 import { Help } from './components/Help';
 import { Login } from './components/Login';
-import { ViewId, LegalTask, CalendarEvent, UserProfile } from './types';
-import { INITIAL_LEGAL_TASKS, INITIAL_USER, INITIAL_CALENDAR_EVENTS } from './constants';
+import { ViewId, LegalTask, CalendarEvent, UserProfile, FamilyMember, PersonalTask, Professional } from './types';
+import { INITIAL_LEGAL_TASKS, INITIAL_USER, INITIAL_CALENDAR_EVENTS, MOCK_FAMILY_MEMBERS, INITIAL_PERSONAL_TASKS, MOCK_PROFESSIONALS } from './constants';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -22,8 +21,11 @@ const App: React.FC = () => {
   
   // Persistent Data States
   const [legalTasks, setLegalTasks] = useState<LegalTask[]>(INITIAL_LEGAL_TASKS);
+  const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>(INITIAL_PERSONAL_TASKS);
   const [user, setUser] = useState<UserProfile>(INITIAL_USER);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(INITIAL_CALENDAR_EVENTS);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(MOCK_FAMILY_MEMBERS);
+  const [professionals, setProfessionals] = useState<Professional[]>(MOCK_PROFESSIONALS);
 
   // Effect to handle dark mode class on HTML element
   useEffect(() => {
@@ -55,26 +57,40 @@ const App: React.FC = () => {
     setLegalTasks(prev => [task, ...prev]);
   };
 
+  const handleUpdatePersonalTasks = (updatedTasks: PersonalTask[]) => {
+    setPersonalTasks(updatedTasks);
+  };
+
   const handleUpdateUser = (updatedUser: UserProfile) => {
     setUser(updatedUser);
   };
 
-  const handleAddCalendarEvent = (event: CalendarEvent) => {
-    setCalendarEvents(prev => [...prev, event]);
+  const handleUpdateCalendarEvents = (updatedEvents: CalendarEvent[]) => {
+    setCalendarEvents(updatedEvents);
+  };
+
+  const handleUpdateFamilyMembers = (updatedMembers: FamilyMember[]) => {
+    setFamilyMembers(updatedMembers);
+  };
+
+  const handleUpdateProfessionals = (updatedProfessionals: Professional[]) => {
+    setProfessionals(updatedProfessionals);
   };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard legalTasks={legalTasks} onNavigate={setActiveTab} user={user} />;
+        return <Dashboard legalTasks={legalTasks} personalTasks={personalTasks} familyMembers={familyMembers} onNavigate={setActiveTab} user={user} />;
       case 'directory':
-        return <Directory />;
+        return <Directory professionals={professionals} onUpdateProfessionals={handleUpdateProfessionals} />;
+      case 'users':
+        return <UsersDirectory users={familyMembers} onUpdateUsers={handleUpdateFamilyMembers} />;
       case 'checklist':
         return <Checklist tasks={legalTasks} onToggleTask={handleToggleLegalTask} onAddTask={handleAddLegalTask} />;
       case 'tasks':
-        return <Tasks />;
+        return <Tasks familyMembers={familyMembers} tasks={personalTasks} onUpdateTasks={handleUpdatePersonalTasks} />;
       case 'calendar':
-        return <Calendar events={calendarEvents} onAddEvent={handleAddCalendarEvent} />;
+        return <Calendar events={calendarEvents} tasks={personalTasks} onUpdateEvents={handleUpdateCalendarEvents} />;
       case 'documents':
         return <Documents />;
       case 'ai-chat':
@@ -92,7 +108,7 @@ const App: React.FC = () => {
       case 'help':
         return <Help />;
       default:
-        return <Dashboard legalTasks={legalTasks} onNavigate={setActiveTab} user={user} />;
+        return <Dashboard legalTasks={legalTasks} personalTasks={personalTasks} familyMembers={familyMembers} onNavigate={setActiveTab} user={user} />;
     }
   };
 
@@ -107,6 +123,7 @@ const App: React.FC = () => {
       darkMode={darkMode} 
       toggleDarkMode={toggleDarkMode}
       user={user}
+      onLogout={handleLogout}
     >
       {renderContent()}
     </Layout>

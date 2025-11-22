@@ -1,29 +1,52 @@
 
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, X, Save, Calendar as CalendarIcon, Star } from 'lucide-react';
-import { CalendarEvent } from '../types';
+import { ChevronLeft, ChevronRight, X, Save, Calendar as CalendarIcon, Star, Trash2, Clock, AlertCircle } from 'lucide-react';
+import { CalendarEvent, PersonalTask } from '../types';
 
 interface CalendarProps {
   events: CalendarEvent[];
-  onAddEvent: (event: CalendarEvent) => void;
+  tasks: PersonalTask[];
+  onUpdateEvents: (events: CalendarEvent[]) => void;
 }
 
-export const Calendar: React.FC<CalendarProps> = ({ events, onAddEvent }) => {
+export const Calendar: React.FC<CalendarProps> = ({ events, tasks, onUpdateEvents }) => {
   // Initialize with the actual current date
   const [currentDate, setCurrentDate] = useState(new Date());
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [holidayAlert, setHolidayAlert] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [newEvent, setNewEvent] = useState<{
     title: string;
     date: string;
+    time: string;
     type: CalendarEvent['type'];
   }>({
     title: '',
     date: '',
+    time: '',
     type: 'personal'
   });
+
+  const legendItems = [
+      { label: 'Legal', colorClass: 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200 border-rose-200 dark:border-rose-800' },
+      { label: 'Personal', colorClass: 'bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-200 border-purple-200 dark:border-purple-800' },
+      { label: 'Household', colorClass: 'bg-green-100 text-green-800 dark:bg-green-900/60 dark:text-green-200 border-green-200 dark:border-green-800' },
+      { label: 'Pet', colorClass: 'bg-orange-100 text-orange-800 dark:bg-orange-900/60 dark:text-orange-200 border-orange-200 dark:border-orange-800' },
+      { label: 'Admin', colorClass: 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200 border-blue-200 dark:border-blue-800' },
+  ];
+
+  // Convert PersonalTasks to CalendarEvents for display
+  const taskEvents: CalendarEvent[] = tasks
+    .filter(t => t.date && !t.completed) // Only show uncompleted tasks with dates
+    .map(t => ({
+        id: `task-${t.id}`, // Prefix to distinguish from manual events
+        title: t.title,
+        date: t.date,
+        type: t.category.toLowerCase() as CalendarEvent['type'],
+        time: '' // Tasks currently don't have specific times
+    }));
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -54,8 +77,29 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onAddEvent }) => {
     setNewEvent({
         title: '',
         date: formattedDate,
+        time: '',
         type: 'personal'
     });
+    setEditId(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEventClick = (e: React.MouseEvent, event: CalendarEvent) => {
+    e.stopPropagation();
+    
+    // Check if this is a task from the Family Logistics screen
+    if (event.id.startsWith('task-')) {
+        alert("This is a Family Task. Please edit it in the Family Logistics screen.");
+        return;
+    }
+
+    setNewEvent({
+        title: event.title,
+        date: event.date,
+        time: event.time || '',
+        type: event.type
+    });
+    setEditId(event.id);
     setIsModalOpen(true);
   };
 
@@ -63,13 +107,35 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onAddEvent }) => {
     e.preventDefault();
     if (!newEvent.title || !newEvent.date) return;
 
-    onAddEvent({
-        title: newEvent.title,
-        date: newEvent.date,
-        type: newEvent.type
-    });
+    if (editId) {
+        // Update existing event
+        const updatedEvents = events.map(ev => 
+            ev.id === editId 
+            ? { ...ev, title: newEvent.title, date: newEvent.date, time: newEvent.time, type: newEvent.type } 
+            : ev
+        );
+        onUpdateEvents(updatedEvents);
+    } else {
+        // Add new event
+        const newCalendarEvent: CalendarEvent = {
+            id: Date.now().toString(),
+            title: newEvent.title,
+            date: newEvent.date,
+            time: newEvent.time,
+            type: newEvent.type
+        };
+        onUpdateEvents([...events, newCalendarEvent]);
+    }
 
     setIsModalOpen(false);
+  };
+
+  const handleDeleteEvent = () => {
+      if (editId) {
+          const updatedEvents = events.filter(ev => ev.id !== editId);
+          onUpdateEvents(updatedEvents);
+          setIsModalOpen(false);
+      }
   };
 
   const getEventColor = (type: CalendarEvent['type']) => {
@@ -120,7 +186,11 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onAddEvent }) => {
     const monthStr = (currentDate.getMonth() + 1).toString().padStart(2, '0');
     const dayStr = day.toString().padStart(2, '0');
     const dateStr = `${year}-${monthStr}-${dayStr}`;
-    return events.filter(e => e.date === dateStr);
+    
+    const manualEvents = events.filter(e => e.date === dateStr);
+    const familyTasks = taskEvents.filter(e => e.date === dateStr);
+    
+    return [...manualEvents, ...familyTasks];
   };
 
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -146,13 +216,15 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onAddEvent }) => {
     );
   };
 
-  const renderAddEventModal = () => {
+  const renderEventModal = () => {
     if (!isModalOpen) return null;
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
             <div className="bg-white dark:bg-ar-dark-card rounded-2xl max-w-md w-full shadow-xl border border-ar-beige dark:border-gray-700">
                 <div className="p-6 border-b border-ar-beige dark:border-gray-700 flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-ar-text dark:text-ar-dark-text">Add Event</h2>
+                    <h2 className="text-xl font-bold text-ar-text dark:text-ar-dark-text">
+                        {editId ? 'Edit Event' : 'Add Event'}
+                    </h2>
                     <button onClick={() => setIsModalOpen(false)} className="text-ar-accent hover:text-ar-text dark:hover:text-white">
                         <X size={24} />
                     </button>
@@ -170,17 +242,31 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onAddEvent }) => {
                             className="w-full p-3 rounded-lg bg-ar-bg dark:bg-gray-800 border border-transparent focus:border-ar-taupe focus:ring-0 text-ar-text dark:text-white"
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-ar-accent mb-1">Date</label>
-                        <div className="relative">
-                            <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                            <input 
-                                required
-                                type="date"
-                                value={newEvent.date}
-                                onChange={e => setNewEvent({...newEvent, date: e.target.value})}
-                                className="w-full pl-10 p-3 rounded-lg bg-ar-bg dark:bg-gray-800 border border-transparent focus:border-ar-taupe focus:ring-0 text-ar-text dark:text-white"
-                            />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-ar-accent mb-1">Date</label>
+                            <div className="relative">
+                                <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                <input 
+                                    required
+                                    type="date"
+                                    value={newEvent.date}
+                                    onChange={e => setNewEvent({...newEvent, date: e.target.value})}
+                                    className="w-full pl-10 p-3 rounded-lg bg-ar-bg dark:bg-gray-800 border border-transparent focus:border-ar-taupe focus:ring-0 text-ar-text dark:text-white"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-ar-accent mb-1">Time (Optional)</label>
+                            <div className="relative">
+                                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                <input 
+                                    type="time"
+                                    value={newEvent.time}
+                                    onChange={e => setNewEvent({...newEvent, time: e.target.value})}
+                                    className="w-full pl-10 p-3 rounded-lg bg-ar-bg dark:bg-gray-800 border border-transparent focus:border-ar-taupe focus:ring-0 text-ar-text dark:text-white"
+                                />
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -198,20 +284,31 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onAddEvent }) => {
                         </select>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4">
-                        <button 
-                            type="button"
-                            onClick={() => setIsModalOpen(false)}
-                            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-ar-text dark:text-ar-dark-text font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type="submit"
-                            className="px-4 py-2 bg-ar-taupe text-white rounded-lg hover:bg-opacity-90 shadow-md flex items-center gap-2"
-                        >
-                            <Save size={18} /> Save Event
-                        </button>
+                    <div className="flex gap-3 pt-4">
+                         {editId && (
+                             <button
+                                type="button"
+                                onClick={handleDeleteEvent}
+                                className="px-4 py-2 rounded-lg border border-red-200 bg-red-50 text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 font-medium flex items-center gap-2"
+                             >
+                                 <Trash2 size={18} /> Delete
+                             </button>
+                         )}
+                        <div className="flex-1 flex justify-end gap-3">
+                            <button 
+                                type="button"
+                                onClick={() => setIsModalOpen(false)}
+                                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-ar-text dark:text-ar-dark-text font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="submit"
+                                className="px-4 py-2 bg-ar-taupe text-white rounded-lg hover:bg-opacity-90 shadow-md flex items-center gap-2"
+                            >
+                                <Save size={18} /> {editId ? 'Update' : 'Save'}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -221,7 +318,7 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onAddEvent }) => {
 
   return (
     <div className="h-full flex flex-col relative">
-       {renderAddEventModal()}
+       {renderEventModal()}
        {renderHolidayAlert()}
 
        <div className="flex justify-between items-center mb-6">
@@ -245,6 +342,15 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onAddEvent }) => {
                 <ChevronRight size={20} />
              </button>
           </div>
+       </div>
+
+       {/* Color Legend */}
+       <div className="flex flex-wrap gap-3 mb-4">
+           {legendItems.map((item) => (
+               <div key={item.label} className={`text-xs px-2 py-1 rounded-md border font-medium flex items-center gap-2 cursor-default ${item.colorClass}`}>
+                   {item.label}
+               </div>
+           ))}
        </div>
 
        <div className="bg-white dark:bg-ar-dark-card rounded-2xl shadow-sm border border-ar-beige dark:border-gray-700 overflow-hidden flex-1 flex flex-col">
@@ -300,15 +406,19 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onAddEvent }) => {
                           `}>{day}</span>
                           
                           <div className="space-y-1 overflow-y-auto max-h-[80px] custom-scrollbar">
-                              {dayEvents.map((ev, idx) => (
+                              {dayEvents.map((ev) => (
                                   <div 
-                                    key={idx} 
+                                    key={ev.id} 
+                                    onClick={(e) => handleEventClick(e, ev)}
                                     className={`
                                         text-xs p-1 px-2 rounded truncate cursor-pointer hover:opacity-80 transition-opacity font-medium
                                         ${getEventColor(ev.type)}
+                                        ${ev.id.startsWith('task-') ? 'opacity-90' : ''}
                                     `}
                                     title={ev.title}
                                   >
+                                      {ev.time && <span className="opacity-75 mr-1">{ev.time}</span>}
+                                      {ev.id.startsWith('task-') && <span className="opacity-75 mr-1">•</span>}
                                       {ev.title}
                                   </div>
                               ))}

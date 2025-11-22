@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import { PersonalTask, PersonalTaskCategory } from '../types';
+import React, { useState, useRef } from 'react';
+import { PersonalTask, PersonalTaskCategory, FamilyMember } from '../types';
 import { Trash2, Calendar, User, ListTodo, Pencil, X, Check, AlertTriangle, Save, Plus } from 'lucide-react';
 
-export const Tasks: React.FC = () => {
-  const [tasks, setTasks] = useState<PersonalTask[]>([
-    { id: '1', title: 'Order flowers for service', assignee: 'Sarah', category: 'Personal', completed: false, date: '2023-11-10' },
-    { id: '2', title: 'Clean guest room', assignee: 'Mark', category: 'Household', completed: true, date: '2023-11-08' },
-    { id: '3', title: 'Find pet sitter for Buster', assignee: 'Alex', category: 'Pet', completed: false, date: '2023-11-12' },
-  ]);
+interface TasksProps {
+    familyMembers: FamilyMember[];
+    tasks: PersonalTask[];
+    onUpdateTasks: (tasks: PersonalTask[]) => void;
+}
+
+export const Tasks: React.FC<TasksProps> = ({ familyMembers, tasks, onUpdateTasks }) => {
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   const [newTask, setNewTask] = useState<Partial<PersonalTask>>({
     title: '',
@@ -24,7 +26,7 @@ export const Tasks: React.FC = () => {
 
     if (editId) {
       // Update existing task
-      setTasks(tasks.map(t => 
+      const updatedTasks = tasks.map(t => 
         t.id === editId 
           ? { 
               ...t, 
@@ -34,7 +36,8 @@ export const Tasks: React.FC = () => {
               date: newTask.date || ''
             } 
           : t
-      ));
+      );
+      onUpdateTasks(updatedTasks);
       setEditId(null);
     } else {
       // Add new task
@@ -46,7 +49,7 @@ export const Tasks: React.FC = () => {
         completed: false,
         date: newTask.date || new Date().toISOString().split('T')[0],
       };
-      setTasks([task, ...tasks]);
+      onUpdateTasks([task, ...tasks]);
     }
     
     // Reset form
@@ -71,17 +74,36 @@ export const Tasks: React.FC = () => {
   };
 
   const toggleTask = (id: string) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+    const updatedTasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+    onUpdateTasks(updatedTasks);
   };
 
   const confirmDelete = () => {
     if (taskToDelete) {
-      setTasks(tasks.filter(t => t.id !== taskToDelete));
+      const updatedTasks = tasks.filter(t => t.id !== taskToDelete);
+      onUpdateTasks(updatedTasks);
       setTaskToDelete(null);
       // If we deleted the task currently being edited, cancel edit mode
       if (editId === taskToDelete) {
         cancelEdit();
       }
+    }
+  };
+
+  const handleCalendarClick = () => {
+    const input = dateInputRef.current;
+    if (input) {
+        try {
+            if (typeof (input as any).showPicker === 'function') {
+                (input as any).showPicker();
+            } else {
+                input.focus();
+                input.click();
+            }
+        } catch (error) {
+            console.warn('Failed to open date picker:', error);
+            input.focus();
+        }
     }
   };
 
@@ -183,24 +205,43 @@ export const Tasks: React.FC = () => {
           </div>
           <div className="md:col-span-2">
             <label className="block text-xs font-medium text-ar-accent mb-1">Assignee</label>
-            <input 
-              type="text" 
+            <select 
               value={newTask.assignee}
               onChange={e => setNewTask({ ...newTask, assignee: e.target.value })}
               onKeyDown={e => e.key === 'Enter' && handleSaveTask()}
-              placeholder="Name"
               className="w-full p-3 bg-ar-bg dark:bg-gray-700 rounded-lg border-none focus:ring-2 focus:ring-ar-taupe dark:text-white"
-            />
+            >
+              <option value="">Select Person</option>
+              {familyMembers.map(member => (
+                  <option key={member.id} value={member.fullName}>{member.fullName}</option>
+              ))}
+            </select>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-xs font-medium text-ar-accent mb-1">Due Date</label>
-            <input 
-              type="date" 
-              value={newTask.date}
-              onChange={e => setNewTask({ ...newTask, date: e.target.value })}
-              onKeyDown={e => e.key === 'Enter' && handleSaveTask()}
-              className="w-full p-3 bg-ar-bg dark:bg-gray-700 rounded-lg border-none focus:ring-2 focus:ring-ar-taupe dark:text-white"
-            />
+            <div className="relative">
+                <label className="block text-xs font-medium text-ar-accent mb-1">Due Date</label>
+                <div className="relative">
+                    <input 
+                      ref={dateInputRef}
+                      type="date" 
+                      value={newTask.date}
+                      onChange={e => setNewTask({ ...newTask, date: e.target.value })}
+                      onKeyDown={e => e.key === 'Enter' && handleSaveTask()}
+                      className="w-full p-3 pl-3 bg-ar-bg dark:bg-gray-700 rounded-lg border-none focus:ring-2 focus:ring-ar-taupe dark:text-white [&::-webkit-calendar-picker-indicator]:hidden cursor-pointer"
+                      onClick={(e) => {
+                          if (e.target === dateInputRef.current) handleCalendarClick();
+                      }}
+                    />
+                    <button 
+                        type="button"
+                        onClick={handleCalendarClick}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-ar-taupe cursor-pointer p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                        title="Open Date Picker"
+                    >
+                        <Calendar size={18} />
+                    </button>
+                </div>
+            </div>
           </div>
           <div className="md:col-span-2">
             <button 

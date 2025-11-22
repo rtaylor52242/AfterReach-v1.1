@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { ViewId, UserProfile } from '../types';
 import { 
@@ -16,7 +15,9 @@ import {
   Sun,
   UserCircle,
   Settings,
-  HelpCircle
+  HelpCircle,
+  HeartHandshake,
+  LogOut
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -26,14 +27,16 @@ interface LayoutProps {
   toggleDarkMode: () => void;
   children: React.ReactNode;
   user: UserProfile;
+  onLogout: () => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ activeTab, onNavigate, darkMode, toggleDarkMode, children, user }) => {
+export const Layout: React.FC<LayoutProps> = ({ activeTab, onNavigate, darkMode, toggleDarkMode, children, user, onLogout }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems: { id: ViewId; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Home', icon: <LayoutDashboard size={20} /> },
     { id: 'directory', label: 'Find Providers', icon: <Users size={20} /> },
+    { id: 'users', label: 'Friends & Family', icon: <HeartHandshake size={20} /> },
     { id: 'checklist', label: 'Legal Checklist', icon: <CheckSquare size={20} /> },
     { id: 'tasks', label: 'Family Tasks', icon: <ListTodo size={20} /> },
     { id: 'calendar', label: 'Calendar', icon: <CalendarIcon size={20} /> },
@@ -92,7 +95,7 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, onNavigate, darkMode,
             ))}
           </nav>
 
-          <div className="mt-auto pt-6 border-t border-ar-beige dark:border-gray-700 space-y-4">
+          <div className="mt-auto pt-6 border-t border-ar-beige dark:border-gray-700 space-y-2">
             <button 
               onClick={toggleDarkMode}
               className="flex items-center gap-3 text-ar-text dark:text-ar-dark-text w-full px-4 py-2 rounded-lg hover:bg-ar-bg dark:hover:bg-gray-700"
@@ -100,7 +103,16 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, onNavigate, darkMode,
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
               <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
-            <div className="flex items-center gap-3 px-4 py-2">
+
+            <button 
+              onClick={onLogout}
+              className="flex items-center gap-3 text-red-500 hover:text-red-600 w-full px-4 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+            >
+              <LogOut size={20} />
+              <span>Sign Out</span>
+            </button>
+
+            <div className="flex items-center gap-3 px-4 py-2 mt-2">
                {user.profileImage ? (
                    <img src={user.profileImage} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-ar-taupe" />
                ) : (

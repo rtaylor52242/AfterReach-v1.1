@@ -44,7 +44,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input 
                   type="email"
-                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-ar-text dark:text-white focus:outline-none focus:ring-2 focus:ring-ar-taupe transition-all"
@@ -59,7 +58,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input 
                   type="password"
-                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-ar-text dark:text-white focus:outline-none focus:ring-2 focus:ring-ar-taupe transition-all"

@@ -37,6 +37,19 @@ export interface Professional {
   reviews?: Review[];
 }
 
+export interface FamilyMember {
+  id: string;
+  fullName: string;
+  relationship: string; // e.g. Brother, Friend, Executor
+  profileImage: string;
+  phone: string;
+  email: string;
+  address: string;
+  bio: string;
+  skills: string[]; // e.g. "Driving", "Cooking", "Childcare"
+  availability: string;
+}
+
 export interface LegalTask {
   id: string;
   title: string;
@@ -74,9 +87,11 @@ export interface ChatMessage {
 }
 
 export interface CalendarEvent {
+  id: string;
   date: string;
   title: string;
   type: 'legal' | 'personal' | 'pet' | 'admin' | 'household';
+  time?: string;
 }
 
 export interface UserProfile {
@@ -87,4 +102,4 @@ export interface UserProfile {
   profileImage?: string; // Base64 string or URL
 }
 
-export type ViewId = 'dashboard' | 'directory' | 'checklist' | 'tasks' | 'calendar' | 'documents' | 'ai-chat' | 'settings' | 'help';
+export type ViewId = 'dashboard' | 'directory' | 'users' | 'checklist' | 'tasks' | 'calendar' | 'documents' | 'ai-chat' | 'settings' | 'help';

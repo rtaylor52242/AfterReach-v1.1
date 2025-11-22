@@ -1,6 +1,4 @@
-
-
-import { Professional, LegalTask, DocumentItem, CalendarEvent, UserProfile } from './types';
+import { Professional, LegalTask, DocumentItem, CalendarEvent, UserProfile, FamilyMember, PersonalTask } from './types';
 
 export const INITIAL_ROLES = [
   'Funeral Director',
@@ -20,12 +18,57 @@ export const INITIAL_USER: UserProfile = {
 };
 
 export const INITIAL_CALENDAR_EVENTS: CalendarEvent[] = [
-  { date: '2023-11-08', title: 'Clean guest room', type: 'personal' },
-  { date: '2023-11-10', title: 'Funeral Service', type: 'legal' },
-  { date: '2023-11-15', title: 'Death Certs Due', type: 'legal' },
-  { date: '2023-11-28', title: 'Meet Attorney', type: 'legal' },
-  { date: '2023-12-05', title: 'Pick up Urn', type: 'personal' },
-  { date: '2023-12-12', title: 'Estate Tax Filing', type: 'legal' },
+  { id: '1', date: '2023-11-08', title: 'Clean guest room', type: 'personal' },
+  { id: '2', date: '2023-11-10', title: 'Funeral Service', type: 'legal' },
+  { id: '3', date: '2023-11-15', title: 'Death Certs Due', type: 'legal' },
+  { id: '4', date: '2023-11-28', title: 'Meet Attorney', type: 'legal' },
+  { id: '5', date: '2023-12-05', title: 'Pick up Urn', type: 'personal' },
+  { id: '6', date: '2023-12-12', title: 'Estate Tax Filing', type: 'legal' },
+];
+
+export const INITIAL_PERSONAL_TASKS: PersonalTask[] = [
+    { id: '1', title: 'Order flowers for service', assignee: 'Sarah', category: 'Personal', completed: false, date: '2023-11-10' },
+    { id: '2', title: 'Clean guest room', assignee: 'Mark', category: 'Household', completed: true, date: '2023-11-08' },
+    { id: '3', title: 'Find pet sitter for Buster', assignee: 'Alex', category: 'Pet', completed: false, date: '2023-11-12' },
+];
+
+export const MOCK_FAMILY_MEMBERS: FamilyMember[] = [
+  {
+    id: '1',
+    fullName: 'Sarah Doe',
+    relationship: 'Sister',
+    profileImage: 'https://ui-avatars.com/api/?name=Sarah+Doe&background=ffddd2&color=5e3023',
+    phone: '(555) 111-2233',
+    email: 'sarah.doe@example.com',
+    address: '45 Maple Ave, Springfield',
+    bio: 'Can help with grocery shopping and picking up relatives from the airport.',
+    skills: ['Shopping', 'Driving', 'Hosting'],
+    availability: 'Weekends and Evenings'
+  },
+  {
+    id: '2',
+    fullName: 'Uncle Bob',
+    relationship: 'Uncle',
+    profileImage: 'https://ui-avatars.com/api/?name=Uncle+Bob&background=d4c5b9&color=2d3748',
+    phone: '(555) 444-5566',
+    email: 'bob.smith@example.com',
+    address: '88 Oak Lane, Springfield',
+    bio: 'Retired. Available during weekdays to wait for contractors or movers.',
+    skills: ['Home Maintenance', 'Logistics', 'Pet Care'],
+    availability: 'Mon-Fri 9am-3pm'
+  },
+  {
+    id: '3',
+    fullName: 'Jennifer Lee',
+    relationship: 'Best Friend',
+    profileImage: 'https://ui-avatars.com/api/?name=Jennifer+Lee&background=e2e8f0&color=4a5568',
+    phone: '(555) 777-8899',
+    email: 'jen.lee@example.com',
+    address: '123 Pine St, Metro City',
+    bio: 'Here for emotional support and organizing the memorial reception.',
+    skills: ['Event Planning', 'Emotional Support', 'Cooking'],
+    availability: 'Evenings'
+  }
 ];
 
 export const MOCK_PROFESSIONALS: Professional[] = [
